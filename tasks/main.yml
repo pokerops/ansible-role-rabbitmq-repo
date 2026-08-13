@@ -1,0 +1,30 @@
+---
+- name: Install RabbitMQ repo in Debian
+  when: ansible_os_family | lower == "debian"
+  block:
+    - name: Install prerequisites
+      ansible.builtin.apt:
+        name: python3-debian
+        update_cache: true
+
+    - name: Add RabbitMQ repos
+      ansible.builtin.deb822_repository:
+        name: rabbitmq
+        architectures: amd64
+        signed_by: "{{ rabbitmq_repo_gpg_url }}"
+        uris:
+          - https://deb1.rabbitmq.com/rabbitmq-erlang/{{ _distro }}/{{ _release }}
+          - https://deb2.rabbitmq.com/rabbitmq-erlang/{{ _distro }}/{{ _release }}
+          - https://deb1.rabbitmq.com/rabbitmq-server/{{ _distro }}/{{ _release }}
+          - https://deb2.rabbitmq.com/rabbitmq-server/{{ _distro }}/{{ _release }}
+        components: main
+        suites: "{{ _release }}"
+        state: "{{ rabbitmq_repo_state }}"
+      vars:
+        _release: "{{ ansible_distribution_release | lower }}"
+        _distro: "{{ ansible_distribution | lower }}"
+
+    - name: Update apt repos
+      ansible.builtin.apt:
+        update_cache: true
+      changed_when: false
