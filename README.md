@@ -32,6 +32,8 @@ Role is tested against the following distributions (docker images):
 - Ubuntu Noble
 - Ubuntu Jammy
 - Debian Bookworm
+- Debian Trixie
+- RockyLinux 10
 
 You can test the role directly from sources using command `make test`
 
