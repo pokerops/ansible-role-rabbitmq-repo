@@ -7,11 +7,11 @@
         name: python3-debian
         update_cache: true
 
-    - name: Add RabbitMQ repos
+    - name: Add RabbitMQ repos for debian
       ansible.builtin.deb822_repository:
         name: rabbitmq
         architectures: amd64
-        signed_by: "{{ rabbitmq_repo_gpg_url }}"
+        signed_by: "{{ rabbitmq_repo_debian_gpg_url }}"
         uris:
           - https://deb1.rabbitmq.com/rabbitmq-erlang/{{ _distro }}/{{ _release }}
           - https://deb2.rabbitmq.com/rabbitmq-erlang/{{ _distro }}/{{ _release }}
@@ -26,5 +26,30 @@
 
     - name: Update apt repos
       ansible.builtin.apt:
+        update_cache: true
+      changed_when: false
+
+- name: Install RabbitMQ repo in RedHat
+  when: ansible_os_family | lower == "redhat"
+  block:
+    - name: Add RabbitMQ repos for redhat
+      ansible.builtin.yum_repository:
+        name: "{{ _name }}"
+        description: "{{ _name }}"
+        file: rabbitmq
+        baseurl: "{{ item.baseurls }}"
+        gpgkey: "{{ item.gpgkey }}"
+        gpgcheck: "{{ item.gpgcheck | default('true') | bool }}"
+        sslverify: "{{ item.sslverify | default('true') | bool }}"
+        sslcacert: "{{ item.cacert | default(omit) }}"
+        state: "{{ item.state | default('present') }}"
+      vars:
+        _name: "{{ item.name }}"
+      loop_control:
+        label: "{{ _name }}"
+      loop: "{{ rabbitmq_repos_redhat }}"
+
+    - name: Update yum repos
+      ansible.builtin.dnf:
         update_cache: true
       changed_when: false
